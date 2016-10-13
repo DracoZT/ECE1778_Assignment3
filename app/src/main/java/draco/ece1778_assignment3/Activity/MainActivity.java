@@ -1,6 +1,7 @@
 package draco.ece1778_assignment3.Activity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -9,13 +10,16 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import java.io.File;
+import java.util.ArrayList;
+
 import draco.ece1778_assignment3.Classes.GridViewAdapter;
 import draco.ece1778_assignment3.R;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
     private GridView gridView;
     private GridViewAdapter gridAdapter;
-    private File[] fileList;
+    private ArrayList<Uri> fileList = new ArrayList<>();
+    //private File[] fileList;
     private File FileDirectory;
     FloatingActionButton btn_camera;
 
@@ -24,8 +28,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        FileDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath());
-        fileList = this.getFilesDir().listFiles();
+        FileDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath()+"/Camera");
+        //fileList = FileDirectory.listFiles();
+
+        for (File file:FileDirectory.listFiles()){
+            fileList.add(Uri.fromFile(file));
+        }
+
+
         gridView = (GridView) findViewById(R.id.gridView);
         gridAdapter = new GridViewAdapter(this, R.layout.grid_view_cell, fileList);
         gridView.setAdapter(gridAdapter);

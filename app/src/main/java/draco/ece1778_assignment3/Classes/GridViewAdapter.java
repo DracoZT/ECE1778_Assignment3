@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,13 +19,14 @@ import draco.ece1778_assignment3.R;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
+import java.util.ArrayList;
 
 public class GridViewAdapter extends ArrayAdapter {
     private Context context;
     private int layoutResourceId;
-    private File[] data;
+    private ArrayList<Uri> data;
 
-    public GridViewAdapter(Context context, int layoutResourceId, File[] data){
+    public GridViewAdapter(Context context, int layoutResourceId, ArrayList<Uri> data){
         super(context, layoutResourceId, data);
         this.context = context;
         this.layoutResourceId = layoutResourceId;
@@ -35,9 +37,10 @@ public class GridViewAdapter extends ArrayAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View row= convertView;
         ViewHolder holder = null;
-        File file = data[position];
+        Uri file = data.get(position);
         ImageItem photo = null;
 
+        /*
         try{
             FileInputStream fs = (getContext()).openFileInput(file.getName());
             ObjectInputStream os = new ObjectInputStream(fs);
@@ -47,6 +50,8 @@ public class GridViewAdapter extends ArrayAdapter {
         }catch (Exception e){
             e.printStackTrace();
         }
+        */
+
         if(row == null){
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
             row = inflater.inflate(layoutResourceId, parent, false);
@@ -57,8 +62,8 @@ public class GridViewAdapter extends ArrayAdapter {
         }else
             holder = (ViewHolder) row.getTag();
 
-        holder.image.setImageBitmap(fetchBitmap(photo));
-        holder.imageLocation.setText(fetchLocation(photo));
+        holder.image.setImageURI(file);
+        //holder.imageLocation.setText(fetchLocation(photo));
 
         return row;
     }
@@ -72,10 +77,12 @@ public class GridViewAdapter extends ArrayAdapter {
         return (String.format("%f, %f", photo.latitude, photo.longitude));
     }
 
+    /*
     public Bitmap fetchBitmap(ImageItem photo){
         Bitmap imageBitmap;
 
         imageBitmap = BitmapFactory.decodeByteArray(photo.image, 0, photo.image.length);
         return imageBitmap;
     }
+    */
 }
