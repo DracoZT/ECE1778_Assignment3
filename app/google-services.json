@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "898178371902",
+    "firebase_url": "https://assignment3-2dcbb.firebaseio.com",
+    "project_id": "assignment3-2dcbb",
+    "storage_bucket": "assignment3-2dcbb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:898178371902:android:71f3bea04beb5682",
+        "android_client_info": {
+          "package_name": "draco.ece1778_assignment3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "898178371902-5uqsf9qafqaeu0sik3sorr2k8g9ojc4p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATCQla_Rs87OmrruqPg3M92VtZ9vkjhPE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
