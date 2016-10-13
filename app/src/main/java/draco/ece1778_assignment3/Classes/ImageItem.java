@@ -1,7 +1,5 @@
 package draco.ece1778_assignment3.Classes;
 
-import android.graphics.Bitmap;
-
 import java.io.Serializable;
 
 /**
@@ -18,4 +16,5 @@ public class ImageItem implements Serializable{
         this.latitude = latitude;
         this.longitude = longitude;
     }
+
 }
