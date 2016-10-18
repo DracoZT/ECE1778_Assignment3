@@ -10,7 +10,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +18,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import draco.ece1778_assignment3.R;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
 public class GridViewAdapter extends ArrayAdapter {
@@ -42,17 +39,6 @@ public class GridViewAdapter extends ArrayAdapter {
         File file = new File(data.get(position).getPath());
         ImageItem photo = null;
 
-        /*
-        try{
-            FileInputStream fs = (getContext()).openFileInput(file.getName());
-            ObjectInputStream os = new ObjectInputStream(fs);
-            photo = (ImageItem) os.readObject();
-            os.close();
-            fs.close();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        */
 
         if(row == null){
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
@@ -65,10 +51,8 @@ public class GridViewAdapter extends ArrayAdapter {
             holder = (ViewHolder) row.getTag();
 
         String path = file.getPath();
-        Bitmap bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(path), 120, 120);
+        Bitmap bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(path), 200, 200);
         holder.image.setImageBitmap(bitmap);
-        //holder.imageLocation.setText(fetchLocation(photo));
-
         return row;
     }
 
@@ -81,12 +65,4 @@ public class GridViewAdapter extends ArrayAdapter {
         return (String.format("%f, %f", photo.latitude, photo.longitude));
     }
 
-    /*
-    public Bitmap fetchBitmap(ImageItem photo){
-        Bitmap imageBitmap;
-
-        imageBitmap = BitmapFactory.decodeByteArray(photo.image, 0, photo.image.length);
-        return imageBitmap;
-    }
-    */
 }

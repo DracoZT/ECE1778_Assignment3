@@ -2,12 +2,14 @@ package draco.ece1778_assignment3.Activity;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,9 +24,11 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
-import draco.ece1778_assignment3.Classes.GPSHandler;
 import draco.ece1778_assignment3.Classes.GridViewAdapter;
 import draco.ece1778_assignment3.Fragment.ImageViewFragment;
 import draco.ece1778_assignment3.R;
@@ -32,29 +36,32 @@ import draco.ece1778_assignment3.R;
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ConnectionCallbacks, OnConnectionFailedListener{
 
     public final String TAG = "Main_Activity";
+
+    public Context context = this;
+
     private GridView gridView;
     private GridViewAdapter gridAdapter;
     public static ArrayList<Uri> fileList = new ArrayList<>();
     public static int pos;
+
     private File FileDirectory;
     static final int CAMERA_REQUEST = 1;
-    FloatingActionButton btn_camera;
+    public String mCurrentPhotoPath;
 
     protected GoogleApiClient mGoogleApiClient;
     protected Location mLastLocation;
     public String mLongitude;
     public String mLatitude;
 
+    FloatingActionButton btn_camera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //GPSHandler.initHandler(this);
 
         FileDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath());
-        //fileList = FileDirectory.listFiles();
 
         for (File file:FileDirectory.listFiles()){
             if(file.getName().toLowerCase().endsWith(".jpg")){
@@ -71,7 +78,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         btn_camera.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(intent, CAMERA_REQUEST);
+                if(intent.resolveActivity(getPackageManager()) != null){
+                    File photoFile = null;
+                    try{
+                        photoFile = createImageFile();
+                    }catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if(photoFile != null){
+                        //Uri photoUri = FileProvider.getUriForFile(context, "draco.ece1778_assignment3.fileprovider",photoFile);
+                        Uri photoUri = Uri.fromFile(photoFile);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                        startActivityForResult(intent, CAMERA_REQUEST);
+                    }
+                }
+
             }
         });
 
@@ -92,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == CAMERA_REQUEST){
             File photoFile = null;
-            //mLastLocation = GPSHandler.getHandler().getLocationString();
             Toast.makeText(this, mLongitude + " " + mLatitude, Toast.LENGTH_LONG).show();
 
         }
@@ -130,46 +150,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             mGoogleApiClient.disconnect();
     }
 
-    /*
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        GPSHandler.onStart();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        final Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                GPSHandler.onPause();
-            }
-        };
-        r.run();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        final Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                GPSHandler.onResume();
-            }
-        };
-        r.run();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        GPSHandler.onStop();
-    }
-
-    */
-
 
 
     @Override
@@ -181,10 +161,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onConnected(Bundle bundle) {
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (mLastLocation != null) {
-            mLongitude = Double.toString(mLastLocation.getLongitude());
-            mLatitude = Double.toString(mLastLocation.getLatitude());
+            mLongitude = String.format("%.2f", mLastLocation.getLongitude());
+            mLatitude = String.format("%.2f", mLastLocation.getLatitude());
         }else{
             Toast.makeText(this, R.string.no_location_detected, Toast.LENGTH_LONG).show();
+            mLongitude = Double.toString(-79.10);
+            mLatitude = Double.toString(43.10);
         }
     }
 
@@ -192,6 +174,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public void onConnectionSuspended(int i) {
         Log.i(TAG, "Connection suspended");
         mGoogleApiClient.connect();
+    }
+
+    private File createImageFile() throws IOException{
+        //create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imgName = mLatitude + "_" + mLongitude + "_" + timeStamp;
+        File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath());
+        File image = new File(storageDir, imgName + ".jpg");
+        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        return image;
     }
 
 }
