@@ -20,6 +20,7 @@ import draco.ece1778_assignment3.R;
 import java.io.File;
 import java.util.ArrayList;
 
+
 public class GridViewAdapter extends ArrayAdapter {
     private Context context;
     private int layoutResourceId;
@@ -37,7 +38,6 @@ public class GridViewAdapter extends ArrayAdapter {
         View row= convertView;
         ViewHolder holder = null;
         File file = new File(data.get(position).getPath());
-        ImageItem photo = null;
 
 
         if(row == null){
@@ -51,8 +51,12 @@ public class GridViewAdapter extends ArrayAdapter {
             holder = (ViewHolder) row.getTag();
 
         String path = file.getPath();
+        String name = file.getName();
+        String new_name = name.substring(0, name.lastIndexOf('.'));
+        String[] location = new_name.split("_");
         Bitmap bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(path), 200, 200);
         holder.image.setImageBitmap(bitmap);
+        holder.imageLocation.setText(location[1] + " " + location[2]);
         return row;
     }
 
