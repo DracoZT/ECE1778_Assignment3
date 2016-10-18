@@ -8,7 +8,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +39,7 @@ public class GridViewAdapter extends ArrayAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         View row= convertView;
         ViewHolder holder = null;
-        Uri file = data.get(position);
+        File file = new File(data.get(position).getPath());
         ImageItem photo = null;
 
         /*
@@ -62,7 +64,9 @@ public class GridViewAdapter extends ArrayAdapter {
         }else
             holder = (ViewHolder) row.getTag();
 
-        holder.image.setImageURI(file);
+        String path = file.getPath();
+        Bitmap bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(path), 120, 120);
+        holder.image.setImageBitmap(bitmap);
         //holder.imageLocation.setText(fetchLocation(photo));
 
         return row;
