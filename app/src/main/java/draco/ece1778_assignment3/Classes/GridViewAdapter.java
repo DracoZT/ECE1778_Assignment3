@@ -56,7 +56,7 @@ public class GridViewAdapter extends ArrayAdapter {
         String[] location = new_name.split("_");
         Bitmap bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(path), 200, 200);
         holder.image.setImageBitmap(bitmap);
-        holder.imageLocation.setText(location[1] + " " + location[2]);
+        holder.imageLocation.setText("Lat: " + location[1] + " Long: " + location[2]);
         return row;
     }
 

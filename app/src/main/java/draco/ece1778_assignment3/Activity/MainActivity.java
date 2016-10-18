@@ -218,8 +218,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-
-
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
