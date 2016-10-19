@@ -1,7 +1,5 @@
 package draco.ece1778_assignment3.Activity;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -12,9 +10,13 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
@@ -29,6 +31,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -39,19 +43,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-import draco.ece1778_assignment3.Classes.GridViewAdapter;
-import draco.ece1778_assignment3.Fragment.ImageViewFragment;
+import draco.ece1778_assignment3.Classes.ImageItem;
+import draco.ece1778_assignment3.Classes.RecyclerViewAdapter;
 import draco.ece1778_assignment3.R;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, ConnectionCallbacks, OnConnectionFailedListener{
+public class MainActivity extends AppCompatActivity implements ConnectionCallbacks, OnConnectionFailedListener{
 
     public final String TAG = "Main_Activity";
 
     public Context context = this;
 
-    private GridView gridView;
-    private GridViewAdapter gridAdapter;
-    public static ArrayList<Uri> fileList = new ArrayList<>();
+    private GridLayoutManager lLayout;
+    public static ArrayList<Uri> fileList;
+    private RecyclerViewAdapter rcAdapter;
     public static int pos;
 
     private File FileDirectory;
@@ -68,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     public StorageReference storageRef = null;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference db;
 
     FloatingActionButton btn_camera;
 
@@ -112,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReferenceFromUrl("gs://assignment3-2dcbb.appspot.com");
 
-
+        fileList = new ArrayList<>();
         FileDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath() + "/CAMERA");
         for (File file:FileDirectory.listFiles()){
             if(file.getName().toLowerCase().endsWith(".jpg")){
@@ -120,10 +125,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         }
 
+        lLayout = new GridLayoutManager(MainActivity.this, 2);
 
-        gridView = (GridView) findViewById(R.id.gridView);
-        gridAdapter = new GridViewAdapter(this, R.layout.grid_view_cell, fileList);
-        gridView.setAdapter(gridAdapter);
+        RecyclerView rView = (RecyclerView)findViewById(R.id.recyclerview);
+        rView.setHasFixedSize(true);
+        rView.setLayoutManager(lLayout);
+
+        rcAdapter = new RecyclerViewAdapter(MainActivity.this, fileList);
+        rcAdapter.notifyDataSetChanged();
+        rView.setAdapter(rcAdapter);
 
         btn_camera = (FloatingActionButton) findViewById(R.id.btn_camera);
         btn_camera.setOnClickListener(new View.OnClickListener(){
@@ -147,7 +157,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
 
-        gridView.setOnItemClickListener(this);
         buildGoogleApiClient();
 
     }
@@ -163,7 +172,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == CAMERA_REQUEST){
+            db = FirebaseDatabase.getInstance().getReference();
             Uri photoUri = Uri.fromFile(mCurrentPhotoPath);
+            fileList.add(photoUri);
+            rcAdapter.notifyDataSetChanged();
+            ImageItem item = new ImageItem(photoUri);
+            db.child(item.file_name).child("Lat").setValue(item.latitude);
+            db.child(item.file_name).child("Long").setValue(item.longitude);
             StorageReference photoRef = storageRef.child("images/" + photoUri.getLastPathSegment());
             UploadTask uploadTask = photoRef.putFile(photoUri);
 
@@ -183,29 +198,16 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        pos = position;
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        ImageViewFragment ivf = new ImageViewFragment();
-        fragmentTransaction.add(R.id.activity_main, ivf);
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if(getFragmentManager().getBackStackEntryCount() != 0)
-            getFragmentManager().popBackStackImmediate();
-        else
-            super.onBackPressed();
-    }
-
-    @Override
     protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(mAuthListener);
         mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        rcAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -216,6 +218,26 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater mf = this.getMenuInflater();
+        mf.inflate(R.menu.main_store, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.restore:
+
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
     }
 
     @Override

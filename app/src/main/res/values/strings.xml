@@ -4,4 +4,5 @@
         No location detected. Please make sure location is enabled and try again.
     </string>
     <string name="icon_title">delete img</string>
+    <string name="restore_img">restore img</string>>
 </resources>

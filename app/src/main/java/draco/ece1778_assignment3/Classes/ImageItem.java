@@ -1,5 +1,8 @@
 package draco.ece1778_assignment3.Classes;
 
+import android.net.Uri;
+
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -7,14 +10,17 @@ import java.io.Serializable;
  */
 
 public class ImageItem implements Serializable{
-    public byte[] image;
-    public double latitude;
-    public double longitude;
+    public String file_name;
+    public String latitude;
+    public String longitude;
 
-    public ImageItem(byte[] image, double latitude, double longitude){
-        this.image = image;
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public ImageItem(Uri photoUri){
+        File photo = new File(photoUri.getPath());
+        String name = photo.getName().substring(0, photo.getName().lastIndexOf('.'));
+        String[] name_array = name.split("_");
+        this.file_name = name_array[0];
+        this.latitude = name_array[1];
+        this.longitude = name_array[2];
     }
 
 }
