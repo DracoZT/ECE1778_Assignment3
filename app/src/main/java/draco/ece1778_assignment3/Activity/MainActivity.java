@@ -127,6 +127,9 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         cloudList = new ArrayList<>();
 
         FileDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath() + "/CAMERA");
+        if(!FileDirectory.exists())
+            FileDirectory.mkdir();
+
         for (File file:FileDirectory.listFiles()){
             if(file.getName().toLowerCase().endsWith(".jpg")){
                 fileList.add(Uri.fromFile(file));
