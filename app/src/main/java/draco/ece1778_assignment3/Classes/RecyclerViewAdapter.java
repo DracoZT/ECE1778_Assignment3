@@ -1,6 +1,9 @@
 package draco.ece1778_assignment3.Classes;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -35,7 +38,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewHolder
 
     @Override
     public void onBindViewHolder(RecyclerViewHolders holder, int position) {
-        holder.Photo.setImageURI(data.get(position));
+        String path = data.get(position).getPath();
+        Bitmap bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(path), 250, 250);
+        holder.Photo.setImageBitmap(bitmap);
+        //holder.Photo.setImageURI(data.get(position));
         File file = new File(data.get(position).getPath());
         String name = file.getName();
         String new_name = name.substring(0, name.lastIndexOf('.'));

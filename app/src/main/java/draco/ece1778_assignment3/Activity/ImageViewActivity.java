@@ -2,7 +2,6 @@ package draco.ece1778_assignment3.Activity;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -78,8 +77,9 @@ public class ImageViewActivity extends AppCompatActivity{
                             delete.delete();
                             DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
                             mDatabase.child(filename[0]).removeValue();
-                            MainActivity.fileList.remove(photo_pos);
-                            Toast.makeText(ctx, "Photo deleted.", Toast.LENGTH_SHORT);
+                            Uri deleted = MainActivity.fileList.remove(photo_pos);
+                            MainActivity.cloudList.remove(deleted);
+                            Toast.makeText(ctx, "Photo deleted.", Toast.LENGTH_SHORT).show();
                             finish();
                         }
                     });
@@ -89,7 +89,7 @@ public class ImageViewActivity extends AppCompatActivity{
                             File delete = new File(photo.getPath());
                             delete.delete();
                             MainActivity.fileList.remove(photo_pos);
-                            Toast.makeText(ctx, "Photo deleted.", Toast.LENGTH_SHORT);
+                            Toast.makeText(ctx, "Photo deleted.", Toast.LENGTH_SHORT).show();
                             finish();
                         }
                     });
@@ -109,5 +109,10 @@ public class ImageViewActivity extends AppCompatActivity{
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
     }
 }

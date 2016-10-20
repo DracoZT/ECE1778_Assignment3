@@ -31,14 +31,19 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
 
     private GridLayoutManager lLayout;
     public static ArrayList<Uri> fileList;
+    public static ArrayList<Uri> cloudList;
     private RecyclerViewAdapter rcAdapter;
     public static int pos;
 
@@ -118,12 +124,29 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         storageRef = storage.getReferenceFromUrl("gs://assignment3-2dcbb.appspot.com");
 
         fileList = new ArrayList<>();
+        cloudList = new ArrayList<>();
+
         FileDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath() + "/CAMERA");
         for (File file:FileDirectory.listFiles()){
             if(file.getName().toLowerCase().endsWith(".jpg")){
                 fileList.add(Uri.fromFile(file));
             }
         }
+
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot data : dataSnapshot.getChildren()){
+                    String cloudUri = parseCloud(data);
+                    File cloud_file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath() + "/CAMERA/" + cloudUri + ".jpg");
+                    cloudList.add(Uri.fromFile(cloud_file));
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
 
         lLayout = new GridLayoutManager(MainActivity.this, 2);
 
@@ -147,7 +170,6 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                         e.printStackTrace();
                     }
                     if(photoFile != null){
-                        //Uri photoUri = FileProvider.getUriForFile(context, "draco.ece1778_assignment3.fileprovider",photoFile);
                         Uri photoUri = Uri.fromFile(photoFile);
                         intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                         startActivityForResult(intent, CAMERA_REQUEST);
@@ -185,7 +207,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
             uploadTask.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(context, "Upload failed", Toast.LENGTH_SHORT);
+                    Toast.makeText(context, "Upload failed", Toast.LENGTH_SHORT).show();
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -232,12 +254,38 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.restore:
-
-
+                cloudList.removeAll(fileList);
+                Toast.makeText(context, "Download Start.", Toast.LENGTH_SHORT).show();
+                for(final Uri not_local : cloudList){
+                    String not_local_string = not_local.toString().substring(not_local.toString().lastIndexOf('/') + 1, not_local.toString().lastIndexOf('.'));
+                    StorageReference dlRef = storageRef.child("images/" + not_local_string + ".jpg");
+                    File storageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getPath() + "/CAMERA");
+                    File image = new File(storageDir, not_local_string + ".jpg");
+                    dlRef.getFile(image).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            fileList.add(0, not_local);
+                            rcAdapter.notifyDataSetChanged();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    public String parseCloud(DataSnapshot data){
+        String fileName = String.valueOf(data.getKey());
+        String lat = String.valueOf(data.child("Lat").getValue());
+        String lon = String.valueOf(data.child("Long").getValue());
+        return (fileName + "_" + lat + "_" + lon);
     }
 
     @Override
